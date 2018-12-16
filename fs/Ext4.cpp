@@ -44,6 +44,7 @@
 #include <cutils/properties.h>
 #include <ext4_utils/ext4_crypt.h>
 #include <logwrap/logwrap.h>
+#include <private/android_filesystem_config.h>
 #include <selinux/selinux.h>
 
 #include "Ext4.h"
@@ -67,7 +68,7 @@ bool IsSupported() {
             && IsFilesystemSupported("ext4");
 }
 
-status_t Check(const std::string& source, const std::string& target) {
+status_t Check(const std::string& source, const std::string& target, bool trusted) {
     // The following is shamelessly borrowed from fs_mgr.c, so it should be
     // kept in sync with any changes over there.
 
@@ -122,33 +123,51 @@ status_t Check(const std::string& source, const std::string& target) {
         cmd.push_back("-y");
         cmd.push_back(c_source);
 
-        // ext4 devices are currently always trusted
-        return ForkExecvp(cmd, sFsckContext);
+        return ForkExecvp(cmd, trusted ? sFsckContext : sFsckUntrustedContext);
     }
 
     return 0;
 }
 
 status_t Mount(const std::string& source, const std::string& target, bool ro,
-        bool remount, bool executable) {
+        bool remount, bool executable, const std::string& opts /* = "" */,
+        bool trusted, bool portable) {
     int rc;
     unsigned long flags;
 
+    std::string data(opts);
+
+    if (portable) {
+        if (!data.empty()) {
+            data += ",";
+        }
+        data += "context=u:object_r:sdcard_posix:s0";
+    }
     const char* c_source = source.c_str();
     const char* c_target = target.c_str();
+    const char* c_data = data.c_str();
 
-    flags = MS_NOATIME | MS_NODEV | MS_NOSUID | MS_DIRSYNC;
+    flags = MS_NOATIME | MS_NODEV | MS_NOSUID;
+
+    // Only use MS_DIRSYNC if we're not mounting adopted storage
+    if (!trusted) {
+        flags |= MS_DIRSYNC;
+    }
 
     flags |= (executable ? 0 : MS_NOEXEC);
     flags |= (ro ? MS_RDONLY : 0);
     flags |= (remount ? MS_REMOUNT : 0);
 
-    rc = mount(c_source, c_target, "ext4", flags, NULL);
+    rc = mount(c_source, c_target, "ext4", flags, c_data);
+    if (portable && rc == 0) {
+        chown(c_target, AID_MEDIA_RW, AID_MEDIA_RW);
+        chmod(c_target, 0775);
+    }
 
     if (rc && errno == EROFS) {
         LOG(ERROR) << source << " appears to be a read only filesystem - retrying mount RO";
         flags |= MS_RDONLY;
-        rc = mount(c_source, c_target, "ext4", flags, NULL);
+        rc = mount(c_source, c_target, "ext4", flags, c_data);
     }
 
     return rc;

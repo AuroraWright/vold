@@ -61,8 +61,10 @@ int main(int argc, char** argv) {
 
 
     LOG(VERBOSE) << "Detected support for:"
+            << (android::vold::IsFilesystemSupported("exfat") ? " exfat" : "")
             << (android::vold::IsFilesystemSupported("ext4") ? " ext4" : "")
             << (android::vold::IsFilesystemSupported("f2fs") ? " f2fs" : "")
+            << (android::vold::IsFilesystemSupported("ntfs") ? " ntfs" : "")
             << (android::vold::IsFilesystemSupported("vfat") ? " vfat" : "");
 
     VolumeManager *vm;
@@ -241,6 +243,14 @@ static int process_config(VolumeManager* vm, bool* has_adoptable, bool* has_quot
             }
 
             std::string sysPattern(rec->blk_device);
+            std::string fstype;
+            if (rec->fs_type) {
+                fstype = rec->fs_type;
+            }
+            std::string mntopts;
+            if (rec->fs_options) {
+                mntopts = rec->fs_options;
+            }
             std::string nickname(rec->label);
             int flags = 0;
 
@@ -254,7 +264,8 @@ static int process_config(VolumeManager* vm, bool* has_adoptable, bool* has_quot
             }
 
             vm->addDiskSource(std::shared_ptr<VolumeManager::DiskSource>(
-                    new VolumeManager::DiskSource(sysPattern, nickname, flags)));
+                    new VolumeManager::DiskSource(sysPattern, nickname, flags,
+                                    fstype, mntopts)));
         }
     }
     return 0;
