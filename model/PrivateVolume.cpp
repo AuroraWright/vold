@@ -119,7 +119,7 @@ status_t PrivateVolume::doMount() {
             return -EIO;
         }
 
-        if (ext4::Mount(mDmDevPath, mPath, false, false, true, "", true)) {
+        if (ext4::Mount(mDmDevPath, mPath, false, false, true, true, false)) {
             PLOG(ERROR) << getId() << " failed to mount";
             return -EIO;
         }

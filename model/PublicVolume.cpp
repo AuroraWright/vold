@@ -45,10 +45,8 @@ static const char* kFusePath = "/system/bin/sdcard";
 
 static const char* kAsecPath = "/mnt/secure/asec";
 
-PublicVolume::PublicVolume(dev_t device, const std::string& fstype /* = "" */,
-                const std::string& mntopts /* = "" */) :
-        VolumeBase(Type::kPublic), mDevice(device), mFusePid(0),
-        mFsType(fstype), mMntOpts(mntopts) {
+PublicVolume::PublicVolume(dev_t device) :
+        VolumeBase(Type::kPublic), mDevice(device), mFusePid(0) {
     setId(StringPrintf("public:%u,%u", major(device), minor(device)));
     mDevPath = StringPrintf("/dev/block/vold/%s", getId().c_str());
 }
@@ -161,7 +159,7 @@ status_t PublicVolume::doMount() {
             return -EIO;
         }
     } else if (mFsType == "ext4") {
-        if (ext4::Mount(mDevPath, mRawPath, false, false, true, mMntOpts, false, true)) {
+        if (ext4::Mount(mDevPath, mRawPath, false, false, true, false, true)) {
             PLOG(ERROR) << getId() << " failed to mount " << mDevPath;
             return -EIO;
         }

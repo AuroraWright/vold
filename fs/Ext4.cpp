@@ -130,17 +130,13 @@ status_t Check(const std::string& source, const std::string& target, bool truste
 }
 
 status_t Mount(const std::string& source, const std::string& target, bool ro,
-        bool remount, bool executable, const std::string& opts /* = "" */,
-        bool trusted, bool portable) {
+        bool remount, bool executable, bool trusted, bool portable) {
     int rc;
     unsigned long flags;
 
-    std::string data(opts);
+    std::string data;
 
     if (portable) {
-        if (!data.empty()) {
-            data += ",";
-        }
         data = data + "context=" + '\"' + "u:object_r:sdcard_posix:s0:c512,c768" + '\"';
     }
     const char* c_source = source.c_str();
