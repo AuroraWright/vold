@@ -28,9 +28,9 @@ namespace ext4 {
 bool IsSupported();
 
 status_t Check(const std::string& source, const std::string& target,
-        bool trusted);
+        bool portable);
 status_t Mount(const std::string& source, const std::string& target, bool ro,
-        bool remount, bool executable, bool trusted, bool portable);
+        bool remount, bool executable, bool portable);
 status_t Format(const std::string& source, unsigned long numSectors,
         const std::string& target);
 status_t Resize(const std::string& source, unsigned long numSectors);

@@ -68,7 +68,7 @@ bool IsSupported() {
             && IsFilesystemSupported("ext4");
 }
 
-status_t Check(const std::string& source, const std::string& target, bool trusted) {
+status_t Check(const std::string& source, const std::string& target, bool portable) {
     // The following is shamelessly borrowed from fs_mgr.c, so it should be
     // kept in sync with any changes over there.
 
@@ -123,14 +123,14 @@ status_t Check(const std::string& source, const std::string& target, bool truste
         cmd.push_back("-y");
         cmd.push_back(c_source);
 
-        return ForkExecvp(cmd, trusted ? sFsckContext : sFsckUntrustedContext);
+        return ForkExecvp(cmd, portable ? sFsckUntrustedContext : sFsckContext);
     }
 
     return 0;
 }
 
 status_t Mount(const std::string& source, const std::string& target, bool ro,
-        bool remount, bool executable, bool trusted, bool portable) {
+        bool remount, bool executable, bool portable) {
     int rc;
     unsigned long flags;
 

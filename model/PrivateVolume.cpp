@@ -111,7 +111,7 @@ status_t PrivateVolume::doMount() {
     }
 
     if (mFsType == "ext4") {
-        int res = ext4::Check(mDmDevPath, mPath, true);
+        int res = ext4::Check(mDmDevPath, mPath, false);
         if (res == 0 || res == 1) {
             LOG(DEBUG) << getId() << " passed filesystem check";
         } else {
@@ -119,7 +119,7 @@ status_t PrivateVolume::doMount() {
             return -EIO;
         }
 
-        if (ext4::Mount(mDmDevPath, mPath, false, false, true, true, false)) {
+        if (ext4::Mount(mDmDevPath, mPath, false, false, true, false)) {
             PLOG(ERROR) << getId() << " failed to mount";
             return -EIO;
         }

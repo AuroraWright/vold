@@ -109,7 +109,7 @@ status_t PublicVolume::doMount() {
             return -EIO;
         }
     } else if (mFsType == "ext4" && ext4::IsSupported()) {
-        if (ext4::Check(mDevPath, mRawPath, false)) {
+        if (ext4::Check(mDevPath, mRawPath, true)) {
             LOG(ERROR) << getId() << " failed filesystem check";
             return -EIO;
         }
@@ -159,7 +159,7 @@ status_t PublicVolume::doMount() {
             return -EIO;
         }
     } else if (mFsType == "ext4") {
-        if (ext4::Mount(mDevPath, mRawPath, false, false, true, false, true)) {
+        if (ext4::Mount(mDevPath, mRawPath, false, false, true, true)) {
             PLOG(ERROR) << getId() << " failed to mount " << mDevPath;
             return -EIO;
         }
